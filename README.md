@@ -1,2 +1,2 @@
 # IDATT2104-NettProg
-Submission for mandatory tasks for the subject IDATT2104
+Mandatory submission for tasks from the subject IDATT2104
