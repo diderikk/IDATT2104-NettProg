@@ -1,9 +1,6 @@
 #include <iostream>
 #include <thread>
-#include <mutex>
 #include <vector>
-#include <algorithm>
-#include <functional>
 #include <sstream>
 
 using namespace std;
@@ -16,19 +13,15 @@ inline bool isPrime(int val){
     return true;
 }
 
-void findPrimes(int d,int start, int end, vector<int> &primes, mutex &vmutex){
+void findPrimes(int d,int start, int end, vector<int> &primes){
     for(int i = start; i<end; i++){
         // printf("%d",i);
         if(isPrime(i)){
             printf("Thread: %d Prime: %d\n",d, i);
-            vmutex.lock();
             primes.push_back(i);
-            vmutex.unlock();
         }
     }
 }
-
-
 
 int main(int argc, char *argv[]){
     int n, start, end;
@@ -43,25 +36,23 @@ int main(int argc, char *argv[]){
 
 
     thread * threads = new thread [n];
-    mutex vector_mutex;
-    vector<int> primes;
+    vector<int> * primes = new vector<int> [n];
 
     if(end-start < n) n = end-start; 
     int increment = (end-start)/n;
 
     for(int i = 0; i<n; i++){
-        if(i == n-1) threads[i] = thread(findPrimes, i, start+increment*i, end+1, ref(primes), ref(vector_mutex));
-        else threads[i] = thread(findPrimes, i, start+increment*i, start+increment*(i+1), ref(primes), ref(vector_mutex));
+        if(i == n-1) threads[i] = thread(findPrimes, i, start+increment*i, end+1, ref(primes[i]));
+        else threads[i] = thread(findPrimes, i, start+increment*i, start+increment*(i+1), ref(primes[i]));
     }
 
     for(int i = 0; i<n; i++){
         threads[i].join();
     }
 
-    sort(primes.begin(),primes.end());
 
-    for(auto &i : primes){
-         cout << i << endl;
+    for(int i = 0; i<n; i++){
+        for(auto &k : primes[i]) cout << k << endl;
     }
     
 
