@@ -10,7 +10,6 @@
 
 using namespace std;
 // g++ main_sleep.cpp -lpthread -o main_sleep
-// TODO comment, epoll
 class Workers
 {
     int thread_size;
@@ -19,7 +18,7 @@ class Workers
     mutex worker_mutex;
     condition_variable worker_cv;
     atomic<bool> stop_var{false};
-    //Starts all threads, used in start()
+    //Starter alle tråder
     void create_threads(int)
     {
         for (int i = 0; i < thread_size; i++)
@@ -29,17 +28,17 @@ class Workers
             });
         }
     };
-    //Defined under class
+    // Definert under klassen
     void thread_task();
 
 public:
     Workers(int n) : thread_size(n){};
-    //Starts all threads, amount defined in constructor
+
     void start()
     {
         create_threads(thread_size);
     };
-    //Post a task
+    //Poster en task
     void post(function<void()> task)
     {
         {
@@ -48,7 +47,7 @@ public:
         }
         worker_cv.notify_one();
     };
-    //Stops all threads and joins them.
+    //Stopper alle tråder og joiner dem
     void stop()
     {
         stop_var.exchange(true);
@@ -58,7 +57,7 @@ public:
             thread.join();
         }
     }
-    // Use existing threads for timeout functions
+    // Bruker eksisterende tråder
     void post_timeout_sleep(function<void()> task, int ms)
     {
         {
@@ -71,10 +70,10 @@ public:
         }
         worker_cv.notify_one();
     }
-    //Creates new threads for timeout functions
+    //Lager ny tråd som vil vente i steden for working trådene
     void post_timeout(function<void()> task, int ms)
     {
-        threads.emplace_back([ms, task,this] { //Add "this" to arguments if task should be done by worker threads
+        threads.emplace_back([ms, task, this] { //Add "this" to arguments if task should be done by worker threads
             this_thread::sleep_for(chrono::milliseconds(ms));
             // task();
             post(task);
@@ -91,8 +90,10 @@ void Workers::thread_task()
             unique_lock<mutex> lock(worker_mutex);
             while (tasks.empty())
             {
+                //Dersom tasks er tom og trådene skal avslutte returnerer vi
                 if (stop_var)
                     return;
+                //Tråden settes på ventelisten
                 worker_cv.wait(lock);
             }
             task = *tasks.begin();
@@ -113,21 +114,25 @@ int main(void)
         //Fix one thread monopoly on all tasks
         workers.post([i] {
             printf("Task %d Thread %ld\n", i + 1, this_thread::get_id());
-            for (int j = 0; j < 100000; j++);
+            for (int j = 0; j < 100000; j++)
+                ;
         });
     }
 
     workers.post_timeout_sleep([] {
         cout << this_thread::get_id() << endl;
-    },5000);
+    },
+                               5000);
 
     workers.post_timeout([] {
         printf("Task TimeoutThread1 Thread %ld\n", this_thread::get_id());
-    },3000);
+    },
+                         3000);
 
     workers.post_timeout([] {
         printf("Task TimeoutThread2 Thread %ld\n", this_thread::get_id());
-    },500);
+    },
+                         500);
 
     this_thread::sleep_for(chrono::seconds(5));
     workers.stop();

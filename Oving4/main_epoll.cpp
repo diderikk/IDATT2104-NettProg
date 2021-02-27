@@ -2,7 +2,7 @@
 #include "main_epoll.hpp"
 
 using namespace std;
-
+// g++ main_epoll.cpp -lpthread -o main_epoll
 int main(void)
 {
     printf("Main thread %ld\n", this_thread::get_id());
@@ -16,10 +16,6 @@ int main(void)
             for (int j = 0; j < 100000; j++);
         });
     }
-
-    // workers.post_timeout_sleep([] {
-    //     cout << this_thread::get_id() << endl;
-    // },5000);
 
     workers.post_timeout([] {
         printf("Task TimeoutThread1 Thread %ld\n", this_thread::get_id());

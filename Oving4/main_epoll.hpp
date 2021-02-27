@@ -123,7 +123,7 @@ public:
             thread.join();
         }
     }
-    //Creates new threads for timeout functions
+    
     void post_timeout(function<void()> task, int ms)
     {
         // Brukes for å sjekke at alle timeout oppgaver er gjort;
