@@ -33,7 +33,7 @@ epoll_event create_event(int ms)
     ts.it_interval.tv_sec = 0;
     ts.it_interval.tv_nsec = 0;
 
-    // Endrer tiden i "event" dataen
+    // Endrer tiden i "event"
     timerfd_settime(timeout.data.fd, 0, &ts, nullptr);
 
     return timeout;
@@ -53,7 +53,7 @@ class Workers
     mutex epoll_mutex;
     vector<event_task> events;
     int max_timeout = 1000;
-    //Starter alle tråder og setter opp en epoll tråd
+    //Starter alle worker tråder
     void create_threads()
     {
         for (int i = 0; i < thread_size; i++)
