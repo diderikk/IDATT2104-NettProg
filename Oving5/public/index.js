@@ -8,18 +8,32 @@ window.onload = () =>{
 
         consoleHTML.value = "Compiling and running main:\n";
 
-        xhr.open("POST","/code",true);
-        xhr.setRequestHeader("Content-Type", "application/json");
-        xhr.onreadystatechange = () => {
-            if(xhr.readyState == XMLHttpRequest.DONE){
-                // console.log(xhr.responseText);
-                let result = JSON.parse(xhr.responseText);
-                consoleHTML.value += result.compiled;
-                console.log(result.error);
-                console.log(result.stderror);
-            }
-        }
-        xhr.send(JSON.stringify({code: codeText}));
+        fetch("/code",{
+          method: 'POST',
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({code: codeText})
+        })
+        .then(response => response.json())
+        .then(data => {
+          let result = data;
+          console.log(data)
+          consoleHTML.value += result.compiled;
+        })
+
+        // xhr.open("POST","/code",true);
+        // xhr.setRequestHeader("Content-Type", "application/json");
+        // xhr.onreadystatechange = () => {
+        //     if(xhr.readyState == XMLHttpRequest.DONE){
+        //         // console.log(xhr.responseText);
+        //         let result = JSON.parse(xhr.responseText);
+        //         consoleHTML.value += result.compiled;
+        //         console.log(result.error);
+        //         console.log(result.stderror);
+        //     }
+        // }
+        // xhr.send(JSON.stringify({code: codeText}));
 
     });
 

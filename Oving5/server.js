@@ -20,26 +20,37 @@ app.get("",(req, res) =>{
 
 app.post("/code", (req, res) => {
     writeToFile(req.body.code);
-    exec("docker cp main.cpp cpp:main.cpp");
-    exec("docker exec cpp g++ main.cpp -o main", (err,stdout,stderr) => {
-        if(err){
-            res.send(JSON.stringify({
-                compiled: stderr
-            }));
-            return;
-        }
-        exec("docker exec cpp ./main", (err, stdout, stderr) => {
-            res.send(JSON.stringify({
-                compiled: stdout
-            }));
+    exec("docker cp main.cpp cpp:main.cpp",() => {
+        exec("docker exec cpp g++ main.cpp -o main", (err,stdout,stderr) => {
+            if(err){
+                res.send(JSON.stringify({
+                    compiled: stderr
+                }));
+                return;
+            }
+            exec("docker exec cpp ./main", (err, stdout, stderr) => {
+                res.send(JSON.stringify({
+                    compiled: stdout
+                }));
+            });
         });
-    });
+    })       
 })
 
 const server = app.listen(PORT, () => {
+    exec("docker image inspect cpp-image", (err) => {
+        if(err){
+            console.log("Building docker image");
+            exec("docker build -t cpp-image .", () => {
+                console.log("Docker image built");
+                exec("docker run -td --rm --name cpp cpp-image");
+            })
+        }
+        else{
+            exec("docker run -td --rm --name cpp cpp-image");
+        }
+    });
     console.log("Server listening on port: " + PORT);
-    exec("docker run -td --rm --name cpp cpp-image");
-    
 });
 
 process.on("SIGINT", () => {
