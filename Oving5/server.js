@@ -20,14 +20,20 @@ app.get("",(req, res) =>{
 
 app.post("/code", (req, res) => {
     writeToFile(req.body.code);
-    exec("docker cp main.cpp cpp:main.cpp", () => {
-        exec("docker exec cpp g++ main.cpp -o main", () => {
-            exec("docker exec cpp ./main", (error, stdout, stderr) => {
-                res.send(JSON.stringify({compiled: stdout}));
-            })
-        })
-    })
-    
+    exec("docker cp main.cpp cpp:main.cpp");
+    exec("docker exec cpp g++ main.cpp -o main", (err,stdout,stderr) => {
+        if(err){
+            res.send(JSON.stringify({
+                compiled: stderr
+            }));
+            return;
+        }
+        exec("docker exec cpp ./main", (err, stdout, stderr) => {
+            res.send(JSON.stringify({
+                compiled: stdout
+            }));
+        });
+    });
 })
 
 const server = app.listen(PORT, () => {
