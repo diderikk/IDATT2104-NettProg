@@ -44,13 +44,14 @@ const server = app.listen(PORT, () => {
             exec("docker build -t cpp-image .", () => {
                 console.log("Docker image built");
                 exec("docker run -td --rm --name cpp cpp-image");
+                console.log("Server listening on port: " + PORT);
             })
         }
         else{
             exec("docker run -td --rm --name cpp cpp-image");
+            console.log("Server listening on port: " + PORT);
         }
     });
-    console.log("Server listening on port: " + PORT);
 });
 
 process.on("SIGINT", () => {
