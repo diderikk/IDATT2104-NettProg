@@ -1,10 +1,14 @@
 const net = require('net');
 const fs = require('fs');
-const crypto = require("crypto")
+const crypto = require("crypto");
 
 const HTTPPORT  = 3000;
 const WSPORT = 3001;
 
+/**
+ * NOT FINISHED
+ */
+// TODO write to all clients, send with byte length === 126, add to index.html file for interaction, add CSS
 const httpServer = net.createServer((connection) => {
     connection.on('data', () => {
         try{
@@ -70,6 +74,8 @@ wsServer.listen(WSPORT, () => {
     console.log('Websocket server listening on port: ', WSPORT);
 })
 
+
+
 function createAcceptKey(clientKey){
     acceptKey = clientKey + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
     acceptKey = crypto.createHash("sha1").update(acceptKey,"binary").digest("base64");
@@ -77,20 +83,28 @@ function createAcceptKey(clientKey){
 }
 
 function createMessage(text){
-    // TODO handle opcode for closing. Current can only send text frame
+    // TODO handle opcode for closing. Current can only send text frame.
+    // TODO masking
     let textByteLength = Buffer.from(text).length;
-    let firstByte = 0b10000001;
     if(textByteLength > 125) throw Error("Message too long");
-    let secondByte = textByteLength;
-    console.log(textByteLength.toString(2));
-    console.log(secondByte.toString(2));
-    const buffer1 = Buffer.from([firstByte,secondByte]);
-    console.log(buffer1);
-    const buffer2 = Buffer.from(text);
-    console.log(buffer2);
-    const buffer = Buffer.concat([buffer1,buffer2]);
-    console.log(buffer);
+    let secondByte = (1 << 7) | textByteLength;
 
+    
+    let maskBytes = [];
+    for(let i = 0; i< 4; i++){
+        maskBytes.push(Math.floor((Math.random()*125)+1))
+    }
+    
+    const buffer1 = Buffer.from([0b10000001,secondByte]);
+    const buffer2 = Buffer.from(maskBytes);
+    const buffer3 = Buffer.from(text);
+
+    for(let i = 0; i<buffer3.length; i++){
+        let byte = buffer3[i] ^ buffer2[i % 4];
+        buffer3[i] = byte;
+    }
+
+    const buffer = Buffer.concat([buffer1,buffer2, buffer3]);
     return buffer;
 
 }
@@ -131,6 +145,7 @@ function parseData(data){
         console.log(result);
     }
     else{
+
         console.log(data.toString());
     }
 }
