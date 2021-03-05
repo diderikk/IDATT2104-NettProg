@@ -4,7 +4,7 @@
 
 <code>npm installl</code>
 <br>
-## Runs local server:
+## Run local server:
 <code>npm start</code>
 <br>
 ## Open browser on <a src="http://localhost:3000">http://localhost:3000</a> to view the program
