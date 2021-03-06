@@ -10,7 +10,7 @@ var clients = [];
 /*
  * NOT FINISHED
  */
-// TODO write to all clients, send with byte length === 126, add to index.html file for interaction, add CSS
+// Send with byte length === 126, add option for closing from serverside
 /**
  * Read index.html file and writes it to client
  */
