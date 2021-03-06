@@ -51,7 +51,7 @@ const server = app.listen(PORT, () => {
     // Checks if docker image exists on computer
     exec("docker image inspect cpp-image", (err) => {
         if(err){
-            // If error, build the image from Dockerfile
+            // If error, the image doesn't exist and it builds the image from Dockerfile
             console.log("Building docker image");
             exec("docker build -t cpp-image .", () => {
                 console.log("Docker image built");
