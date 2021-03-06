@@ -5,6 +5,8 @@ const crypto = require("crypto");
 const HTTPPORT  = 3000;
 const WSPORT = 3001;
 
+var clients = [];
+
 /**
  * NOT FINISHED
  */
@@ -50,14 +52,16 @@ const wsServer = net.createServer((connection) => {
             let acceptKey = createAcceptKey(key);
 
             connection.write(`HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\n`+
-            `Connection: Upgrade\r\nSec-WebSocket-Accept: ${acceptKey}\r\nSec-WebSocket-Protocol: JSON\r\n\r\n`);
+            `Connection: Upgrade\r\nSec-WebSocket-Accept: ${acceptKey}\r\n\r\n`);
+            clients.push(connection);
         }
         else{
-            for(let i = 0; i< data.length; i++)console.log(data[i].toString(2));
             parseData(data);
             let response = "Hello back";
             let buf = createMessage(response);
-            connection.write(buf);
+            for(socket of clients){
+                if(socket) socket.write(buf);
+            }
         }
     });
 
