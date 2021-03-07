@@ -7,6 +7,8 @@ const WSPORT = 3001;
 
 var clients = [];
 
+const file = 'chat.html';
+
 /*
  * NOT FINISHED
  */
@@ -17,7 +19,7 @@ var clients = [];
 const httpServer = net.createServer((connection) => {
     connection.on('data', () => {
         try{
-            fs.readFile('index.html', (err, data) => {
+            fs.readFile(file, (err, data) => {
                 if(err){
                     throw err;
                 }
@@ -69,14 +71,17 @@ const wsServer = net.createServer((connection) => {
             };
             // Client message
             let message = parseData(data);
-            console.log(message);
+            // console.log(message);
             // Finds client index and creates a response
             let response = "";
-            for(let i = 0; i < clients.length; i++){
-                if(clients[i] === connection){
-                    response = `Client ${i+1}: ${message}`;
+            if((/chat/).test(file)){
+                for(let i = 0; i < clients.length; i++){
+                    if(clients[i] === connection){
+                        response = `Client ${i+1}: ${message}`;
+                    }
                 }
             }
+            else response = message;
             // Creates the answer with protocol
             let buf = createMessage(response);
             // Writes message to all open clients
@@ -100,13 +105,17 @@ wsServer.on("error", (error) => {
     console.log("Error: ", error);
 });
 
+wsServer.on("close", () => {
+
+})
+
 wsServer.listen(WSPORT, () => {
     console.log('Websocket server listening on port: ', WSPORT);
 })
 
 /**
  * 
- * @param {*} clientKey 
+ * @param clientKey 
  * @returns acceptKey
  */
 
@@ -125,10 +134,31 @@ function createAcceptKey(clientKey){
 function createMessage(text){
     // Byte length
     let textByteLength = Buffer.from(text).length;
-    // TODO
-    if(textByteLength > 125) throw Error("Message too long");
+
     // Maked bit and datalength bits into a single byte
-    let secondByte = (1 << 7) | textByteLength;
+    let secondByte; let buffer1;
+    if(textByteLength < 126){
+        secondByte = (1 << 7) | textByteLength;
+        buffer1 = Buffer.from([0b10000001, secondByte]);
+    }
+    else if(textByteLength > 125 && textByteLength < 65535){
+        console.log("HEllo");
+        secondByte = (1 << 7) | 126;
+        buffer1 = Buffer.alloc(4);
+        buffer1.writeUInt8(0b10000001,0)
+        buffer1.writeUInt8(secondByte,1);
+        buffer1.writeUInt16BE(textByteLength,2);
+    }
+    else {
+        // should be : if(textByteLenth > 125 && textByteLength < max(64-bit integer))
+        // secondByte = (1 << 7) | 127;
+        // buffer1 = Buffer.alloc(10);
+        // buffer1.writeUInt8(0b10000001,0)
+        // buffer1.writeUInt8(secondByte,1);
+        // Doesnt work...
+        // buffer1.writeBigUInt64BE(textByteLength,2);
+        throw Error("Message was too long");
+    }
 
     // Creates 4 random mask bytes
     let maskBytes = [];
@@ -137,8 +167,8 @@ function createMessage(text){
     }
     // First and second byte, first with a FIN-flag and will only send text.
     // This means client is the only one that can end connection. 
-    // TODO server close connections.
-    const buffer1 = Buffer.from([0b10000001,secondByte]);
+    // TODO server close connections
+
     const buffer2 = Buffer.from(maskBytes);
     const buffer3 = Buffer.from(text);
 
@@ -156,7 +186,7 @@ function createMessage(text){
 
 /**
  * Parses masked data from client
- * @param {*} data masked
+ * @param data masked
  * @returns parsed data in a string
  */
 
@@ -164,25 +194,28 @@ function parseData(data){
     // Checks if the first bit in the second byte is a 1 or 0. Masked or not.
     let masked = data[1]>>7 === 1;
     let length, maskStart;
+
     // If byte length is less than 126 the data length is equal to the 7 least significant
     // bits of the second byte.
     length = data[1] & 0b1111111;
+
     // Two first bits are used for meta data.
     maskStart = 2;
         
-    if(data.length === 126){
+    if(length === 126){
         // Creates a 16 bit number from two bytes
-        length += ((data[2] << 8)| data[3]);
+        length = ((data[2] << 8)| data[3]);
+
         // Two more bits are being used
         maskStart = 4;
     }
-    else if(data.length === 127){
-        let temp = data[2];
+    else if(length === 127){
+        length = data[2];
         // Creates a 64 bit number from 8 bytes.
         for(let i = 3; i<10;i++){
-            temp = (temp << 8)|data[i];
+            length = (length << 8)|data[i];
         }
-        length += temp;
+
         maskStart = 10;
     }
     let result = "";
@@ -207,7 +240,7 @@ function parseData(data){
 
 /**
  * Checks that alle necessary headerfields was sent by client
- * @param {*} headers from HTTP-GET request
+ * @param headers from HTTP-GET request
  * @returns boolean
  */
 

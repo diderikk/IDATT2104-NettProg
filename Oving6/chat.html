@@ -60,7 +60,6 @@
         document.getElementById("submit").addEventListener("click",(event) => {
           event.preventDefault();
           let message = document.getElementById("message").value;
-          console.log(message);
           ws.send(message);
         });
         ws.onmessage = event => {
