@@ -1,13 +1,15 @@
 window.onload = () =>{
-
     document.getElementById("submit").addEventListener("click", (event) => {
-        const xhr = new XMLHttpRequest();
+      // Textarea for the output
         let consoleHTML = document.getElementById("console");
+        // Prevents reloading page
         event.preventDefault();
+        // Code from the input
         codeText = document.getElementById("code").value;
 
         consoleHTML.value = "Compiling and running main:\n";
 
+        // Post the code to server.js
         fetch("/code",{
           method: 'POST',
           headers: {
@@ -21,22 +23,9 @@ window.onload = () =>{
           console.log(data)
           consoleHTML.value += result.compiled;
         })
-
-        // xhr.open("POST","/code",true);
-        // xhr.setRequestHeader("Content-Type", "application/json");
-        // xhr.onreadystatechange = () => {
-        //     if(xhr.readyState == XMLHttpRequest.DONE){
-        //         // console.log(xhr.responseText);
-        //         let result = JSON.parse(xhr.responseText);
-        //         consoleHTML.value += result.compiled;
-        //         console.log(result.error);
-        //         console.log(result.stderror);
-        //     }
-        // }
-        // xhr.send(JSON.stringify({code: codeText}));
-
     });
 
+    // Makes it possible to tab inside the input textarea
     document.getElementById('code').addEventListener('keydown', function(e) {
         if (e.key == 'Tab') {
           e.preventDefault();
@@ -51,7 +40,9 @@ window.onload = () =>{
         }
       });
 }
-// Jquery without tab indenting
+
+
+// Same as above, but with XHR and JQuery
 // $(document).ready(() =>{
 //     $("form").submit((event) => {
 //         let elem = $(event.currentTarget);

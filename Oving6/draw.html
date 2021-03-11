@@ -1,0 +1,69 @@
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>WebSocket Client</title>
+    <style>
+      h1{
+        text-align: center;
+      }
+      #paint{
+        border: 1px solid black;
+        display: block;
+      }
+      #sketch{
+        display: flex;
+        justify-content: center;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>WebSocket Client</h1>
+    <div id="sketch">
+      <canvas id="paint"></canvas>
+    </div>
+    </div>
+    <script>
+      window.onload = () => {
+        let ws = new WebSocket('ws://localhost:3001');
+
+        let canvas = document.getElementById("paint");
+        let ctx = canvas.getContext("2d");
+
+        canvas.width = 750;
+        canvas.height = 500;
+
+        let mouse = {x: 0, y: 0};
+
+        canvas.addEventListener('mousemove', (event) => {
+          mouse.x = event.pageX - canvas.offsetLeft;
+          mouse.y = event.pageY - canvas.offsetTop;
+        });
+
+        ctx.lineJoin = "round";
+        ctx.lineCap = "round";
+
+        canvas.addEventListener('mousedown', () => {
+          ctx.beginPath();
+          ctx.moveTo(mouse.x, mouse.y);
+
+          canvas.addEventListener('mousemove', onPaint);
+        });
+
+        canvas.addEventListener('mouseup', () => {
+          canvas.removeEventListener('mousemove', onPaint);
+        })
+
+        function onPaint(){
+          ws.send(JSON.stringify(mouse));
+        }
+
+        ws.onmessage = event => {
+          mouse = JSON.parse(event.data);
+          ctx.lineTo(mouse.x, mouse.y);
+          ctx.stroke();
+        };
+        
+      }
+    </script>
+  </body>
+</html>
