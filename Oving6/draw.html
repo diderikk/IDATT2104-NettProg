@@ -43,8 +43,10 @@
         ctx.lineCap = "round";
 
         canvas.addEventListener('mousedown', () => {
-          ctx.beginPath();
-          ctx.moveTo(mouse.x, mouse.y);
+          ws.send(JSON.stringify({
+            event: "mousedown",
+            mouse: mouse
+          }));
 
           canvas.addEventListener('mousemove', onPaint);
         });
@@ -54,13 +56,23 @@
         })
 
         function onPaint(){
-          ws.send(JSON.stringify(mouse));
+          ws.send(JSON.stringify({
+            event: "mousemove",
+            mouse: mouse
+          }));
         }
 
         ws.onmessage = event => {
-          mouse = JSON.parse(event.data);
-          ctx.lineTo(mouse.x, mouse.y);
-          ctx.stroke();
+          message = JSON.parse(event.data);
+          mouse = message.mouse;
+          if(message.event === 'mousedown'){
+            ctx.beginPath();
+            ctx.moveTo(mouse.x, mouse.y);
+          }
+          else if(message.event === 'mousemove'){
+            ctx.lineTo(mouse.x, mouse.y);
+            ctx.stroke();
+          }
         };
         
       }

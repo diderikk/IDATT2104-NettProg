@@ -7,7 +7,7 @@ const WSPORT = 3001;
 
 var clients = [];
 
-const file = 'chat.html';
+const fileHTML = 'draw.html';
 
 /*
  * NOT FINISHED
@@ -19,7 +19,7 @@ const file = 'chat.html';
 const httpServer = net.createServer((connection) => {
     connection.on('data', () => {
         try{
-            fs.readFile(file, (err, data) => {
+            fs.readFile(fileHTML, (err, data) => {
                 if(err){
                     throw err;
                 }
@@ -50,6 +50,7 @@ const wsServer = net.createServer((connection) => {
         if((/GET \/ HTTP\//i).test(string)){
             if(!checkHeaderFields(string)){
                 connection.write("HTTP/1.1 400 Bad Request\r\n");
+                console.log(string);
                 connection.end();
             }
             // Reads key from  client's GET-request
@@ -74,7 +75,7 @@ const wsServer = net.createServer((connection) => {
             // console.log(message);
             // Finds client index and creates a response
             let response = "";
-            if((/chat/).test(file)){
+            if((/chat/).test(fileHTML)){
                 for(let i = 0; i < clients.length; i++){
                     if(clients[i] === connection){
                         response = `Client ${i+1}: ${message}`;
@@ -82,6 +83,7 @@ const wsServer = net.createServer((connection) => {
                 }
             }
             else response = message;
+
             // Creates the answer with protocol
             let buf = createMessage(response);
             // Writes message to all open clients
@@ -135,15 +137,15 @@ function createMessage(text){
     // Byte length
     let textByteLength = Buffer.from(text).length;
 
-    // Maked bit and datalength bits into a single byte
-    let secondByte; let buffer1;
+    // datalength bits into a single byte
+    let secondByte, buffer1;
     if(textByteLength < 126){
-        secondByte = (1 << 7) | textByteLength;
+        secondByte = textByteLength;
         buffer1 = Buffer.from([0b10000001, secondByte]);
     }
     else if(textByteLength > 125 && textByteLength < 65535){
         console.log("HEllo");
-        secondByte = (1 << 7) | 126;
+        secondByte = 126;
         buffer1 = Buffer.alloc(4);
         buffer1.writeUInt8(0b10000001,0)
         buffer1.writeUInt8(secondByte,1);
@@ -161,25 +163,25 @@ function createMessage(text){
     }
 
     // Creates 4 random mask bytes
-    let maskBytes = [];
-    for(let i = 0; i< 4; i++){
-        maskBytes.push(Math.floor((Math.random()*125)+1))
-    }
+    // let maskBytes = [];
+    // for(let i = 0; i< 4; i++){
+    //     maskBytes.push(Math.floor((Math.random()*125)+1))
+    // }
     // First and second byte, first with a FIN-flag and will only send text.
     // This means client is the only one that can end connection. 
     // TODO server close connections
 
-    const buffer2 = Buffer.from(maskBytes);
+    // const buffer2 = Buffer.from(maskBytes);
     const buffer3 = Buffer.from(text);
 
     // Maskes text bytes, same procedure as parsing as we are using XOR
-    for(let i = 0; i<buffer3.length; i++){
-        let byte = buffer3[i] ^ buffer2[i % 4];
-        buffer3[i] = byte;
-    }
+    // for(let i = 0; i<buffer3.length; i++){
+    //     let byte = buffer3[i] ^ buffer2[i % 4];
+    //     buffer3[i] = byte;
+    // }
     
     // Concatenates all buffers into one
-    const buffer = Buffer.concat([buffer1,buffer2, buffer3]);
+    const buffer = Buffer.concat([buffer1,buffer3]);
     return buffer;
 
 }
