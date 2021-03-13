@@ -1,0 +1,20 @@
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>WebSocket Client</title>
+    <style>
+      
+    </style>
+  </head>
+  <body>
+    <h1>WebSocket test page</h1>
+    <script>
+      window.on
+      let ws = new WebSocket('ws://localhost:3001');
+      ws.onmessage = event => {
+        alert('Message from server: ' + event.data);
+      };
+      ws.onopen = () => ws.send('hello');
+    </script>
+  </body>
+</html>
