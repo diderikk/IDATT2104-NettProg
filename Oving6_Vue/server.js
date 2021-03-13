@@ -7,36 +7,6 @@ const WSPORT = 3001;
 
 var clients = [];
 
-const fileHTML = 'chat.html';
-
-/**
- * Reads index.html file and writes it to client
- */
-// const httpServer = net.createServer((connection) => {
-//     connection.on('data', () => {
-//         try{
-//             fs.readFile(fileHTML, (err, data) => {
-//                 if(err){
-//                     console.log("Error during reading");
-//                 }
-//                 connection.write('HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: ' + data.length + '\r\n\r\n' + data);
-
-//             });
-//         }catch(error){
-//             console.log("Couldn't open HTML file");
-//         }
-        
-//     });
-// });
-
-// httpServer.listen(HTTPPORT, () => {
-//     console.log("HTTP server listening on port: " + HTTPPORT);
-// });
-
-// httpServer.on("error", (error) =>{
-//     console.log(error);
-// });
-
 const wsServer = net.createServer((connection) => {
     console.log("Client connected");
 
