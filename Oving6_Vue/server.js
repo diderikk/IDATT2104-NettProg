@@ -1,5 +1,4 @@
 const net = require('net');
-const fs = require('fs');
 const crypto = require("crypto");
 
 const HTTPPORT  = 3000;
@@ -41,14 +40,13 @@ const wsServer = net.createServer((connection) => {
             console.log(message);
             // Finds client index and creates a response
             let response = "";
-            if((/chat/).test(fileHTML)){
-                for(let i = 0; i < clients.length; i++){
-                    if(clients[i] === connection){
-                        response = `Client ${i+1}: ${message}`;
-                    }
+            
+            for(let i = 0; i < clients.length; i++){
+                if(clients[i] === connection){
+                    response = `Client ${i+1}: ${message}`;
                 }
             }
-            else response = message;
+            if(response === '') response = message;
 
             // Creates the answer with protocol
             let buf = createMessage(response);
