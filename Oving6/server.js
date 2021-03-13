@@ -7,27 +7,23 @@ const WSPORT = 3001;
 
 var clients = [];
 
-const fileHTML = 'draw.html';
+const fileHTML = 'chat.html';
 
-/*
- * NOT FINISHED
- */
-// Send with byte length === 126, add option for closing from serverside
 /**
- * Read index.html file and writes it to client
+ * Reads index.html file and writes it to client
  */
 const httpServer = net.createServer((connection) => {
     connection.on('data', () => {
         try{
             fs.readFile(fileHTML, (err, data) => {
                 if(err){
-                    throw err;
+                    console.log("Error during reading");
                 }
                 connection.write('HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: ' + data.length + '\r\n\r\n' + data);
 
             });
         }catch(error){
-            console.log(error);
+            console.log("Couldn't open HTML file");
         }
         
     });
@@ -144,7 +140,6 @@ function createMessage(text){
         buffer1 = Buffer.from([0b10000001, secondByte]);
     }
     else if(textByteLength > 125 && textByteLength < 65535){
-        console.log("HEllo");
         secondByte = 126;
         buffer1 = Buffer.alloc(4);
         buffer1.writeUInt8(0b10000001,0)
@@ -162,26 +157,10 @@ function createMessage(text){
         throw Error("Message was too long");
     }
 
-    // Creates 4 random mask bytes
-    // let maskBytes = [];
-    // for(let i = 0; i< 4; i++){
-    //     maskBytes.push(Math.floor((Math.random()*125)+1))
-    // }
-    // First and second byte, first with a FIN-flag and will only send text.
-    // This means client is the only one that can end connection. 
-    // TODO server close connections
-
-    // const buffer2 = Buffer.from(maskBytes);
-    const buffer3 = Buffer.from(text);
-
-    // Maskes text bytes, same procedure as parsing as we are using XOR
-    // for(let i = 0; i<buffer3.length; i++){
-    //     let byte = buffer3[i] ^ buffer2[i % 4];
-    //     buffer3[i] = byte;
-    // }
+    const buffer2 = Buffer.from(text);
     
     // Concatenates all buffers into one
-    const buffer = Buffer.concat([buffer1,buffer3]);
+    const buffer = Buffer.concat([buffer1,buffer2]);
     return buffer;
 
 }
